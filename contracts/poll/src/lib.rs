@@ -72,6 +72,7 @@ impl PollContract {
     }
 
     /// Get the vote count for an option ("yes" or "no")
+
     pub fn get_votes(env: Env, option: Symbol) -> u32 {
         env.storage()
             .persistent()
@@ -92,5 +93,96 @@ impl PollContract {
             .instance()
             .get(&DataKey::Question)
             .unwrap_or(symbol_short!("unknown"))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use soroban_sdk::{symbol_short, testutils::Address as _, Env};
+
+    fn setup() -> (Env, soroban_sdk::Address) {
+        let env = Env::default();
+        env.mock_all_auths();
+        let contract_id = env.register(PollContract, ());
+        (env, contract_id)
+    }
+
+    #[test]
+    fn test_init_and_question() {
+        let (env, contract_id) = setup();
+        let client = PollContractClient::new(&env, &contract_id);
+        let q = symbol_short!("rust");
+        client.init(&q);
+        assert_eq!(client.question(), q);
+    }
+
+    #[test]
+    fn test_vote_yes_increments_count() {
+        let (env, contract_id) = setup();
+        let client = PollContractClient::new(&env, &contract_id);
+        client.init(&symbol_short!("rust"));
+        let voter = Address::generate(&env);
+        client.vote(&voter, &symbol_short!("yes"));
+        assert_eq!(client.get_votes(&symbol_short!("yes")), 1);
+        assert_eq!(client.get_votes(&symbol_short!("no")), 0);
+    }
+
+    #[test]
+    fn test_vote_no_increments_count() {
+        let (env, contract_id) = setup();
+        let client = PollContractClient::new(&env, &contract_id);
+        client.init(&symbol_short!("rust"));
+        let voter = Address::generate(&env);
+        client.vote(&voter, &symbol_short!("no"));
+        assert_eq!(client.get_votes(&symbol_short!("no")), 1);
+        assert_eq!(client.get_votes(&symbol_short!("yes")), 0);
+    }
+
+    #[test]
+    fn test_has_voted_true_after_voting() {
+        let (env, contract_id) = setup();
+        let client = PollContractClient::new(&env, &contract_id);
+        client.init(&symbol_short!("rust"));
+        let voter = Address::generate(&env);
+        assert!(!client.has_voted(&voter));
+        client.vote(&voter, &symbol_short!("yes"));
+        assert!(client.has_voted(&voter));
+    }
+
+    #[test]
+    #[should_panic(expected = "already voted")]
+    fn test_cannot_vote_twice() {
+        let (env, contract_id) = setup();
+        let client = PollContractClient::new(&env, &contract_id);
+        client.init(&symbol_short!("rust"));
+        let voter = Address::generate(&env);
+        client.vote(&voter, &symbol_short!("yes"));
+        client.vote(&voter, &symbol_short!("no"));
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid option")]
+    fn test_invalid_option_rejected() {
+        let (env, contract_id) = setup();
+        let client = PollContractClient::new(&env, &contract_id);
+        client.init(&symbol_short!("rust"));
+        let voter = Address::generate(&env);
+        client.vote(&voter, &symbol_short!("maybe"));
+    }
+
+    #[test]
+    fn test_multiple_voters() {
+        let (env, contract_id) = setup();
+        let client = PollContractClient::new(&env, &contract_id);
+        client.init(&symbol_short!("rust"));
+        for _ in 0..3 {
+            client.vote(&Address::generate(&env), &symbol_short!("yes"));
+        }
+        for _ in 0..2 {
+            client.vote(&Address::generate(&env), &symbol_short!("no"));
+        }
+        assert_eq!(client.get_votes(&symbol_short!("yes")), 3);
+        assert_eq!(client.get_votes(&symbol_short!("no")), 2);
     }
 }
