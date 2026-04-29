@@ -101,10 +101,11 @@ echo "VITE_CONTRACT_ID=<CONTRACT_ID>" > .env
 
 ## Screenshots
 
-> Add after running:
-> - Screenshot of wallet selection modal (multiple wallet options)
-> - Screenshot with wallet connected and balance shown
-> - Screenshot of successful vote with transaction hash
+### Wallet Options Modal
+![Wallet Options](./Wallet_Options.png)
+
+### Successful Vote
+![Vote Success](./Vote_Success.png)
 
 ## License
 
