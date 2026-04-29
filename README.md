@@ -4,7 +4,7 @@ A live-voting dApp built on **Stellar Testnet** using a Soroban smart contract. 
 
 ## Live Demo
 
-> *(Deploy to Vercel/Netlify and add URL here)*
+> **[🚀 Live App →](https://stellar-vote-ashen.vercel.app)**
 
 ## Deployed Contract
 
@@ -53,7 +53,7 @@ question(env) -> Symbol                 // Get the question
 
 ```bash
 # 1. Clone
-git clone https://github.com/<your-username>/stellar-vote.git
+git clone https://github.com/Ayushjo/stellar-vote.git
 cd stellar-vote
 
 # 2. Install
