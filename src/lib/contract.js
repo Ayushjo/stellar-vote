@@ -62,7 +62,7 @@ async function writeContract(publicKey, fnName, ...args) {
   const result = await rpc.sendTransaction(
     TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE)
   )
-  if (result.status === 'ERROR') throw new Error(result.errorResult?.toString() || 'Send failed')
+  if (result.status === 'ERROR') throw new Error('Transaction failed to submit. Please try again.')
 
   return pollTransaction(result.hash)
 }
